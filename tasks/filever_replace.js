@@ -123,7 +123,6 @@ module.exports = function (grunt) {
             for (var label in options.patterns) {
               var pattern = options.patterns[label];
               var match = pattern.exec(content);
-              console.log('MATCH ! ', match);
               if (match) {
                 grunt.log.debug('Matching ' + [filepath, pattern, JSON.stringify(match)].join(': '));
                 replacement = match[0];
