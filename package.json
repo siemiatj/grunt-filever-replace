@@ -1,0 +1,47 @@
+{
+  "name": "grunt-filever-replace",
+  "version": "0.0.1",
+  "description": "Blablah",
+  "homepage": "https://github.com/siemiatj/grunt-filever-replace",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/siemiatj/grunt-filever-replace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/siemiatj/grunt-filever-replace/issues"
+  },
+  "author": {
+    "name": "sasklacz",
+    "url": "http://saskla.cz",
+    "email": "kuba@saskla.cz"
+  },
+  "keywords": [
+    "gruntplugin",
+    "rev",
+    "version",
+    "versioning",
+    "html",
+    "css",
+    "assets",
+    "json"
+  ],
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "dependencies": {
+    "chalk": "~0.4.0",
+    "each-async": "~0.1.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-copy": "~0.4.0",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-simple-mocha": "~0.4.0",
+    "grunt-contrib-jshint": "~0.7.2"
+  }
+}
