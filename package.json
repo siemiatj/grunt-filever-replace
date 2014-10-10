@@ -12,8 +12,8 @@
   },
   "author": {
     "name": "sasklacz",
-    "url": "http://saskla.cz",
-    "email": "kuba@saskla.cz"
+    "email": "kuba@saskla.cz",
+    "url": "http://saskla.cz"
   },
   "keywords": [
     "gruntplugin",
@@ -35,7 +35,8 @@
   ],
   "dependencies": {
     "chalk": "~0.4.0",
-    "each-async": "~0.1.0"
+    "each-async": "~0.1.0",
+    "du": "~0.1.0"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
@@ -43,5 +44,11 @@
     "grunt-contrib-clean": "~0.5.0",
     "grunt-simple-mocha": "~0.4.0",
     "grunt-contrib-jshint": "~0.7.2"
-  }
+  },
+  "readme": "grunt-filever-replace\n=====================\n\nPackage for versioning files and replacing them in your js\n",
+  "readmeFilename": "README.md",
+  "_id": "grunt-filever-replace@0.0.1",
+  "_shasum": "e25eb42a6097d43c1d6022c70bc69c11d48b6514",
+  "_resolved": "git://github.com/siemiatj/grunt-filever-replace.git#a210056f612bde14dc07f905a372a81b996247ea",
+  "_from": "grunt-filever-replace@git://github.com/siemiatj/grunt-filever-replace.git#master"
 }

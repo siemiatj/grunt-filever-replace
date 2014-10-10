@@ -1,9 +1,10 @@
-'use strict';
-var crypto = require('crypto');
-var path = require('path');
-var fs = require('fs');
-var chalk = require('chalk');
-var eachAsync = require('each-async');
+// 'use strict';
+var crypto = require('crypto'),
+  path = require('path'),
+  fs = require('fs'),
+  chalk = require('chalk'),
+  eachAsync = require('each-async'),
+  du = require("du")
 
 module.exports = function (grunt) {
 
@@ -26,73 +27,90 @@ module.exports = function (grunt) {
 
   grunt.registerMultiTask('filever_replace', 'File revisioning based on content hashing', function () {
     var options = this.options({
-      encoding: 'utf8',
-      algorithm: 'md5',
-      length: 8
-    });
-    var hash = crypto.createHash(options.algorithm).digest('hex');
-    var suffix = hash.slice(0, options.length);
-    var target = this.target;
-    var filever_replace = grunt.filever_replace || {summary: {}};
-    var that = this;
-
+        encoding: 'utf8',
+        algorithm: 'md5',
+        length: 8
+      }),
+      hash = null,
+      suffix = null,
+      target = this.target,
+      filever_replace = grunt.filever_replace || {summary: {}},
+      that = this;
 
     if (target === 'version') {
-      eachAsync(this.files, function (el, i, next) {
-        var move = true;
-        
-        // If dest is furnished it should indicate a directory
-        if (el.dest) {
-          // When globbing is used, el.dest contains basename, we remove it
-          if(el.orig.expand) {
-            el.dest = path.dirname(el.dest);
-          }
+      if (this.files.length){
+        var pth = this.files[0].src[0],
+          dirPath, done;
 
-          try {
-            var stat = fs.lstatSync(el.dest);
-            if (stat && !stat.isDirectory()) {
-              grunt.fail.fatal('Destination for target %s is not a directory', target);
-            }
-          } catch (err) {
-            grunt.log.writeln('Destination dir ' + el.dest + ' does not exists for target ' + target + ': creating');
-            grunt.file.mkdir(el.dest);
-          }
-          // We need to copy file as we now have a dest different from the src
-          move = false;
+        try {
+          dirPath = path.dirname(pth);      
+        } catch (err) {
+          grunt.fail.fatal('Cannot resolve directory path for %s', pth);
         }
 
-        el.src.forEach(function (file) {
-          var dirname;
-          var ext = path.extname(file);
-          var newName = [path.basename(file, ext), suffix, ext.slice(1)].join('.');
-          var resultPath;
+        done = this.async();
 
-          if (move) {
-            dirname = path.dirname(file);
-            resultPath = path.resolve(dirname, newName);
-            fs.renameSync(file, resultPath);
-          } else {
-            dirname = el.dest;
-            resultPath = path.resolve(dirname, newName);
-            grunt.file.copy(file, resultPath);
-          }
+        du(dirPath, function (err, size) {
+          console.log('The size of /home/rvagg/.npm/ is:', size, 'bytes');
+          done();
 
-          filever_replace.summary[path.normalize(file)] = path.join(dirname, newName);
-          grunt.log.writeln(chalk.green('✔ ') + file + chalk.gray(' changed to ') + newName);
+          hash = crypto.createHash(options.algorithm).update(size+'', options.encoding).digest('hex');
+          suffix = hash.slice(0, options.length);
+
+          eachAsync(that.files, function (el, i, next) {
+            var move = true;
+            
+            // If dest is furnished it should indicate a directory
+            if (el.dest) {
+              // When globbing is used, el.dest contains basename, we remove it
+              if(el.orig.expand) {
+                el.dest = path.dirname(el.dest);
+              }
+
+              try {
+                var stat = fs.lstatSync(el.dest);
+                if (stat && !stat.isDirectory()) {
+                  grunt.fail.fatal('Destination for target %s is not a directory', target);
+                }
+              } catch (err) {
+                grunt.log.writeln('Destination dir ' + el.dest + ' does not exists for target ' + target + ': creating');
+                grunt.file.mkdir(el.dest);
+              }
+              // We need to copy file as we now have a dest different from the src
+              move = false;
+            }
+
+            el.src.forEach(function (file) {
+              var dirname;
+              var ext = path.extname(file);
+              var newName = [path.basename(file, ext), suffix, ext.slice(1)].join('.');
+              var resultPath;
+
+              if (move) {
+                dirname = path.dirname(file);
+                resultPath = path.resolve(dirname, newName);
+                fs.renameSync(file, resultPath);
+              } else {
+                dirname = el.dest;
+                resultPath = path.resolve(dirname, newName);
+                grunt.file.copy(file, resultPath);
+              }
+
+              filever_replace.summary[path.normalize(file)] = path.join(dirname, newName);
+              grunt.log.writeln(chalk.green('✔ ') + file + chalk.gray(' changed to ') + newName);
+            });
+            next();
+
+          }, that.async());
+
         });
-        next();
-
-      }, this.async());
-    
+      }
     }
 
     if (target === 'replace') {
-
-
-      // var path = require('path');
-      var sep = '/';
-      var options = this.options();
-      var versioned = filever_replace.summary;
+      var sep = '/',
+        options = this.options(),
+        versioned = filever_replace.summary;
 
       if (versioned && path.sep !== sep) {
         var re = new RegExp(reEscape(path.sep), 'g');
@@ -161,8 +179,6 @@ module.exports = function (grunt) {
           });
         });
       }
-
-
     }
 
     grunt.filever_replace = filever_replace;
