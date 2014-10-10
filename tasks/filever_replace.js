@@ -1,10 +1,10 @@
-// 'use strict';
+'use strict';
 var crypto = require('crypto'),
   path = require('path'),
   fs = require('fs'),
   chalk = require('chalk'),
   eachAsync = require('each-async'),
-  du = require("du")
+  du = require("du");
 
 module.exports = function (grunt) {
 
@@ -29,34 +29,31 @@ module.exports = function (grunt) {
     var options = this.options({
         encoding: 'utf8',
         algorithm: 'md5',
-        length: 8
+        length: 8,
+        hashPath: null
       }),
-      hash = null,
-      suffix = null,
       target = this.target,
       filever_replace = grunt.filever_replace || {summary: {}},
-      that = this;
+      that = this,
+      dirPath = path.dirname(options.hashPath),
+      done;
+
+    try {
+      dirPath = path.dirname(options.hashPath);      
+    } catch (err) {
+      grunt.fail.fatal('Cannot resolve directory path for hash');
+    }
 
     if (target === 'version') {
-      if (this.files.length){
-        var pth = this.files[0].src[0],
-          dirPath, done;
+      done = this.async();
 
-        try {
-          dirPath = path.dirname(pth);      
-        } catch (err) {
-          grunt.fail.fatal('Cannot resolve directory path for %s', pth);
-        }
-
-        done = this.async();
-
-        du(dirPath, function (err, size) {
-          console.log('The size of /home/rvagg/.npm/ is:', size, 'bytes');
-          done();
-
-          hash = crypto.createHash(options.algorithm).update(size+'', options.encoding).digest('hex');
+      du(dirPath, function (err, size) {
+        var hash = crypto.createHash(options.algorithm).update(size+'', options.encoding).digest('hex'),
           suffix = hash.slice(0, options.length);
 
+        done();
+
+        if (target === 'version') {
           eachAsync(that.files, function (el, i, next) {
             var move = true;
             
@@ -102,15 +99,14 @@ module.exports = function (grunt) {
             next();
 
           }, that.async());
-
-        });
-      }
+        }
+      });
     }
 
     if (target === 'replace') {
       var sep = '/',
-        options = this.options(),
         versioned = filever_replace.summary;
+      options = that.options();
 
       if (versioned && path.sep !== sep) {
         var re = new RegExp(reEscape(path.sep), 'g');
@@ -120,12 +116,12 @@ module.exports = function (grunt) {
         }
       }
 
-      grunt.log.debug(this.nameArgs + ': ' + JSON.stringify(this.files, null, 4) +
+      grunt.log.debug(that.nameArgs + ': ' + JSON.stringify(that.files, null, 4) +
         JSON.stringify(options, null, 4));
       grunt.log.debug('filerev.summary: ' + JSON.stringify(versioned, null, 4));
 
       if (versioned) {
-        this.files.forEach(function(file) {
+        that.files.forEach(function(file) {
           file.src.filter(function(filepath) {
             if (!grunt.file.exists(filepath)) {
               grunt.log.warn('Source file "' + filepath + '" not found.');
